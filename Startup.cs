@@ -9,7 +9,6 @@ namespace WebApiKalum
         {
             this.Configuration = _Configuration;
         }
-
         public void ConfigureServices(IServiceCollection _services)
         {
             _services.AddControllers();
@@ -18,7 +17,6 @@ namespace WebApiKalum
             _services.AddEndpointsApiExplorer();
             _services.AddSwaggerGen();
         }
-
         public void Configure(IApplicationBuilder app, IWebHostEnvironment env)
         {
             if(env.IsDevelopment())
