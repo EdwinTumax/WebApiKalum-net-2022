@@ -63,3 +63,6 @@
 /Users/edwintumax/Documents/kinal/net/prod/WebApiKalum/bin/Debug/net6.0/Microsoft.AspNetCore.Mvc.NewtonsoftJson.dll
 /Users/edwintumax/Documents/kinal/net/prod/WebApiKalum/bin/Debug/net6.0/Newtonsoft.Json.dll
 /Users/edwintumax/Documents/kinal/net/prod/WebApiKalum/bin/Debug/net6.0/Newtonsoft.Json.Bson.dll
+/Users/edwintumax/Documents/kinal/net/prod/WebApiKalum/bin/Debug/net6.0/AutoMapper.dll
+/Users/edwintumax/Documents/kinal/net/prod/WebApiKalum/bin/Debug/net6.0/AutoMapper.Extensions.Microsoft.DependencyInjection.dll
+/Users/edwintumax/Documents/kinal/net/prod/WebApiKalum/bin/Debug/net6.0/RabbitMQ.Client.dll
