@@ -37,18 +37,20 @@ namespace WebApiKalum.Controllers
         }
 
         [HttpGet("page/{page}")]
-        public async Task<ActionResult<IEnumerable<CarreraTecnica>>> GetPaginacion(int page)
+        public async Task<ActionResult<IEnumerable<CarreraTecnicaListDTO>>> GetPaginacion(int page)
         {
-            var queryable = this.DbContext.CarreraTecnica.Include(ct => ct.Aspirantes).Include(ct => ct.Inscripciones).AsQueryable();
-            var paginacion = new HttpResponsePaginacion<CarreraTecnica>(queryable,page);            
-            if(paginacion.Content == null && paginacion.Content.Count == 0)
+            var queryable = this.DbContext.CarreraTecnica.AsQueryable();
+            int registros = await queryable.CountAsync();
+            if(registros == 0)
             {
                 return NoContent();
             }
             else
             {
-                return Ok(paginacion);
-            }            
+                var carrerasTecnicas = await queryable.OrderBy(carrerasTecnicas => carrerasTecnicas.Nombre).Paginar(page).ToListAsync();
+                PaginationResponse<CarreraTecnicaListDTO> response = new PaginationResponse<CarreraTecnicaListDTO>(Mapper.Map<List<CarreraTecnicaListDTO>>(carrerasTecnicas),page,registros);
+                return Ok(response);
+            }                       
         }
 
         [HttpGet("{id}", Name = "GetCarreraTecnica")]
@@ -61,10 +63,10 @@ namespace WebApiKalum.Controllers
                 return new NoContentResult();
             }
             Logger.LogInformation("Finalizando el proceso de busqueda de forma exitosa");
-            return Ok(carrera);
+            return Ok(Mapper.Map<CarreraTecnicaListDTO>(carrera));
         }
         [HttpPost]    
-        public async Task<ActionResult<CarreraTecnica>> Post([FromBody] CarreraTecnicaCreateDTO value)
+        public async Task<ActionResult<CarreraTecnicaListDTO>> Post([FromBody] CarreraTecnicaCreateDTO value)
         {
             Logger.LogDebug("Iniciando el proceso de agregar una carrera técnica nueva");            
             CarreraTecnica nuevo = Mapper.Map<CarreraTecnica>(value);
@@ -72,7 +74,7 @@ namespace WebApiKalum.Controllers
             await DbContext.CarreraTecnica.AddAsync(nuevo);
             await DbContext.SaveChangesAsync();
             Logger.LogInformation("Finalizando el proceso de agregar una carrera técnica");
-            return new CreatedAtRouteResult("GetCarreraTecnica",new {id = nuevo.CarreraId}, nuevo);    
+            return new CreatedAtRouteResult("GetCarreraTecnica",new {id = nuevo.CarreraId}, Mapper.Map<CarreraTecnicaListDTO>(nuevo));    
         }
         [HttpDelete("{id}")]
         public async Task<ActionResult<CarreraTecnica>> Delete(string id)

@@ -6,6 +6,5 @@ namespace WebApiKalum.Dtos
     {
         public string CarreraId {get;set;}
         public string Nombre {get; set;}
-        public List<AspiranteListDTO> Aspirantes {get; set; }
     }
 }
