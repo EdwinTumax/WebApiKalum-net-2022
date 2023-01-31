@@ -23,6 +23,17 @@ namespace WebApiKalum.Controllers
             this.Mapper = _Mapper;
         }
 
+        [HttpGet("search", Name = "GetAnio")]
+        public async Task<ActionResult<IEnumerable<ExamenAdmisionListDTO>>> Get([FromQuery] int anio)
+        {
+            List<ExamenAdmision> examenesAdmision = await this.DbContext.ExamenAdmision.Where( e =>  e.FechaExamen.Year == anio).ToListAsync();
+            if(examenesAdmision == null || examenesAdmision.Count == 0)
+            {
+                return NoContent();
+            }    
+            List<ExamenAdmisionListDTO> response = Mapper.Map<List<ExamenAdmisionListDTO>>(examenesAdmision);
+            return Ok(response);
+        }
 
         [HttpGet("page/{page}")]
         public async Task<ActionResult<IEnumerable<ExamenAdmisionListDTO>>> GetPaginacion(int page)

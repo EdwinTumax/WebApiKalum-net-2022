@@ -5,6 +5,7 @@ using Microsoft.EntityFrameworkCore;
 using WebApiKalum.Dtos;
 using AutoMapper;
 using WebApiKalum.Utilities;
+using WebApiKalum.Services;
 
 namespace WebApiKalum.Controllers
 {
@@ -15,12 +16,14 @@ namespace WebApiKalum.Controllers
         private readonly KalumDbContext DbContext;
         private readonly ILogger<AspiranteController> Logger;
         private readonly IMapper Mapper;
+        private readonly IUtilsService UtilsService;
 
-        public AspiranteController(KalumDbContext _DbContext, ILogger<AspiranteController> _Logger, IMapper _Mapper)
+        public AspiranteController(KalumDbContext _DbContext, ILogger<AspiranteController> _Logger, IMapper _Mapper, IUtilsService _UtilsService)
         {
             this.DbContext = _DbContext;
             this.Logger = _Logger;
             this.Mapper = _Mapper;
+            this.UtilsService = _UtilsService;
         }
         [HttpPost]
         public async Task<ActionResult<AspiranteListDTO>> Post([FromBody] AspiranteCreateDTO value)
@@ -43,13 +46,21 @@ namespace WebApiKalum.Controllers
             {
                 Logger.LogInformation($"No existe el examen de admisión con el id {value.ExamenId}");
                 return BadRequest();
+            }            
+            bool result = await this.UtilsService.CrearExpedienteAsync(value);
+            CandidateRecordResponse candidateRecordResponse = new CandidateRecordResponse();
+            if(result)
+            {
+                candidateRecordResponse.Status = "Ok";
+                candidateRecordResponse.Mensaje = $"El proceso de solicitud del expediente fue creado exitosamente, pronto recibira su número de expediente al correo {value.Email}";
             }
-            Aspirante aspirante = Mapper.Map<Aspirante>(value);
-
-            await DbContext.Aspirante.AddAsync(aspirante);
-            await DbContext.SaveChangesAsync();
-            Logger.LogInformation($"Se ha creato el aspirante con exito");
-            return new CreatedAtRouteResult("GetAspirante", new { id = aspirante.NoExpediente }, Mapper.Map<AspiranteListDTO>(aspirante));
+            else 
+            {
+                candidateRecordResponse.Status = "Error";
+                candidateRecordResponse.Mensaje = $"Hubo un problema al crear la solicitud intente de nuevo o más tarde";                
+            }
+            Logger.LogInformation($"Se ha creato la solicitud del aspirante con exito");    
+            return Ok(candidateRecordResponse);            
         }
         [HttpGet]
         [ServiceFilter(typeof(ActionFilter))]

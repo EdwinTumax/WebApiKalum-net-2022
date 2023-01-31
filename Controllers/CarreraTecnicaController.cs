@@ -48,7 +48,8 @@ namespace WebApiKalum.Controllers
             else
             {
                 var carrerasTecnicas = await queryable.OrderBy(carrerasTecnicas => carrerasTecnicas.Nombre).Paginar(page).ToListAsync();
-                PaginationResponse<CarreraTecnicaListDTO> response = new PaginationResponse<CarreraTecnicaListDTO>(Mapper.Map<List<CarreraTecnicaListDTO>>(carrerasTecnicas),page,registros);
+                PaginationResponse<CarreraTecnicaListDTO> response = new PaginationResponse<CarreraTecnicaListDTO>
+                    (Mapper.Map<List<CarreraTecnicaListDTO>>(carrerasTecnicas),page,registros);
                 return Ok(response);
             }                       
         }
@@ -57,7 +58,8 @@ namespace WebApiKalum.Controllers
         public async Task<ActionResult<CarreraTecnica>> GetCarreraTecnica(string id)
         {
             Logger.LogDebug("Iniciando el proceso de busqueda con el id " + id);
-            var carrera = await DbContext.CarreraTecnica.Include(c => c.Aspirantes).Include(c => c.Inscripciones).FirstOrDefaultAsync(ct => ct.CarreraId == id);
+            var carrera = await DbContext.CarreraTecnica.Include(c => c.Aspirantes).Include(c => c.Inscripciones)
+                .FirstOrDefaultAsync(ct => ct.CarreraId == id);
             if(carrera == null)
             {   Logger.LogWarning("No existe la carrera técnica con el id " + id);
                 return new NoContentResult();

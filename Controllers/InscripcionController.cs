@@ -1,3 +1,4 @@
+using Microsoft.VisualBasic.CompilerServices;
 using System.Text;
 using Microsoft.AspNetCore.Mvc;
 using WebApiKalum.Dtos;
@@ -5,6 +6,8 @@ using WebApiKalum.Entities;
 using Microsoft.EntityFrameworkCore;
 using RabbitMQ.Client;
 using System.Text.Json;
+using WebApiKalum.Utilities;
+using WebApiKalum.Services;
 
 namespace WebApiKalum.Controllers
 {
@@ -12,13 +15,17 @@ namespace WebApiKalum.Controllers
     [Route("v1/KalumManagement/Inscripciones")]
     public class InscripcionController : ControllerBase
     {
+        public IConfiguration Configuration {get;}
+        public IUtilsService UtilsService {get;}
         private readonly KalumDbContext DbContext;
         private readonly ILogger<InscripcionController> Logger;        
 
-        public InscripcionController(KalumDbContext _DbContext, ILogger<InscripcionController> _Logger)
+        public InscripcionController(KalumDbContext _DbContext, ILogger<InscripcionController> _Logger, IConfiguration _Configuration, IUtilsService _UtilsService)
         {
             this.Logger = _Logger;
             this.DbContext = _DbContext;
+            this.Configuration = _Configuration;
+            this.UtilsService = _UtilsService;
         }
 
         [HttpPost("Enrollments")]
@@ -34,7 +41,7 @@ namespace WebApiKalum.Controllers
             {
                 return NoContent();
             }
-            bool respuesta = await CrearSolicitudAsync(value);       
+            bool respuesta = await this.UtilsService.CrearSolicitudAsync(value);       
             if(respuesta == true)
             {
                 ResponseEnrollmentDTO response = new ResponseEnrollmentDTO();
@@ -54,16 +61,17 @@ namespace WebApiKalum.Controllers
             ConnectionFactory factory = new ConnectionFactory();
             IConnection conexion = null;
             IModel channel = null;
-            factory.HostName = "localhost";
-            factory.VirtualHost = "/";
-            factory.Port = 5672;
-            factory.UserName = "guest";
-            factory.Password = "guest";
+            factory.HostName = this.Configuration.GetValue<string>("RabbitConfiguration:HostName");;
+            factory.VirtualHost = this.Configuration.GetValue<string>("RabbitConfiguration:VirtualHost");;
+            factory.Port = this.Configuration.GetValue<int>("RabbitConfiguration:Port");
+            factory.UserName = this.Configuration.GetValue<string>("RabbitConfiguration:UserName");
+            factory.Password = this.Configuration.GetValue<string>("RabbitConfiguration:Password");
             try
             {
                 conexion = factory.CreateConnection();
                 channel = conexion.CreateModel();
-                channel.BasicPublish("kalum.exchange.enrollment","",null,Encoding.UTF8.GetBytes(JsonSerializer.Serialize(value)));
+                channel.BasicPublish(this.Configuration.GetValue<string>("RabbitConfiguration:EnrollmentExchange"),"",null,Encoding.UTF8.GetBytes(JsonSerializer.Serialize(value)));
+                await Task.Delay(100);
                 proceso = true;
             }
             catch(Exception e)
